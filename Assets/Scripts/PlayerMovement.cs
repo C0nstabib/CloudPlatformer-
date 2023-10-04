@@ -9,50 +9,79 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     [SerializeField] private float speedMultiplier;
     Rigidbody2D rb;
-    [SerializeField] private bool waterPoolCollide;
+    
     [SerializeField] private bool groundJump;
     [SerializeField] int waterMeter;
-    [SerializeField] private int waterMax = 15;
-    [SerializeField] private bool overWater;
-    float timer;
+    [SerializeField] private int waterMax = 100;
+    [SerializeField] private int jumpCost = 8;
+   
+    private bool overWater;
+    float poolTimer;
 
+    bool floatStart;
+    float floatTimer;
     public void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         waterMeter = waterMax;
-        timer = 1f;
+        poolTimer = 1f;
+        floatTimer = 0.5f;
     }
     public void Update()
     {
        
         rb.velocity = new Vector2(moveInput.x * speedMultiplier, rb.velocity.y);
-        if (Input.GetKeyDown("space") && waterMeter > 0)
+        if (Input.GetKeyDown("space") && waterMeter > 0 && !floatStart)
         {
             rb.velocity = new Vector2(0, 7);
             if (!groundJump)
             {
-                waterMeter -= 1;
+                waterMeter -= jumpCost;
             }
-        }
-        if (groundJump)
-        {
-            
         }
 
         if (overWater && waterMeter < waterMax)
         {
-            timer -= 1 * Time.deltaTime * 4;
-            if(timer <= 0)
+            poolTimer -= 1 * Time.deltaTime * 4;
+            if(poolTimer <= 0)
             {
-                waterMeter += 1;
-                timer = 1;
+                waterMeter += 10;
+                poolTimer = 1;
             }
         }
 
+        if(waterMeter > waterMax)
+        {
+            waterMeter = waterMax;
+        }
+
+        if (floatStart && waterMeter > 0)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, -0.5f);
+            
+            floatTimer -= 0.5f * Time.deltaTime * 2;
+            if (floatTimer <= 0)
+            {
+                waterMeter -= 2;
+                floatTimer = 0.5f;
+            }
+        }
     }
     public void Move(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
+    }
+
+    public void Float(InputAction.CallbackContext context)
+    {
+        if(context.performed  && !groundJump)
+        {
+            floatStart = true;
+        }
+        else if(context.canceled)
+        {
+            floatStart = false;
+        }
     }
 
     public void OnCollisionEnter2D(Collision2D collision)
@@ -75,11 +104,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (other.gameObject.tag == "waterPool" && waterMeter < waterMax)
         {
-            waterMeter += 1;
+            waterMeter += 10;
             overWater = true;
         }
     }
-
     void OnTriggerExit2D(Collider2D other1)
     {
         if (other1.gameObject.tag == "waterPool")
