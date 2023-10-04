@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool groundJump;
     [SerializeField] int waterMeter;
     [SerializeField] private int waterMax = 100;
-    [SerializeField] private int jumpCost = 8;
+    [SerializeField] private int jumpCost = 20;
    
     private bool overWater;
     float poolTimer;
@@ -31,7 +31,7 @@ public class PlayerMovement : MonoBehaviour
     {
        
         rb.velocity = new Vector2(moveInput.x * speedMultiplier, rb.velocity.y);
-        if (Input.GetKeyDown("space") && waterMeter > 0 && !floatStart)
+        if (Input.GetKeyDown("space") && waterMeter > 20 && !floatStart)
         {
             rb.velocity = new Vector2(0, 7);
             if (!groundJump)
@@ -55,14 +55,14 @@ public class PlayerMovement : MonoBehaviour
             waterMeter = waterMax;
         }
 
-        if (floatStart && waterMeter > 0)
+        if (floatStart && waterMeter > 5)
         {
             rb.velocity = new Vector2(rb.velocity.x, -0.5f);
             
             floatTimer -= 0.5f * Time.deltaTime * 2;
             if (floatTimer <= 0)
             {
-                waterMeter -= 2;
+                waterMeter -= 5;
                 floatTimer = 0.5f;
             }
         }
