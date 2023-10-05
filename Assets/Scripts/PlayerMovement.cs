@@ -11,12 +11,13 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody2D rb;
     public Vector2 currentRespawn;
     [SerializeField] int deathCount;
+    public Groundcheck groundScript;
     
-    [SerializeField] bool groundJump;
     [SerializeField] public int waterMeter;
     [SerializeField] int waterMax = 100;
     [SerializeField] int jumpCost = 20;
    
+    
     bool overWater;
     float poolTimer;
 
@@ -40,13 +41,12 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector2(moveInput.x * speedMultiplier, rb.velocity.y);
         if (Input.GetKeyDown("space") && !floatStart)
         {
-            
-            if (!groundJump && waterMeter > 20)
+            if (!groundScript.groundCheck && waterMeter > 20)
             {
                 rb.velocity = new Vector2(0, 7);
                 waterMeter -= jumpCost;
             }
-            else if (groundJump)
+            else if (groundScript.groundCheck)
             {
                 rb.velocity = new Vector2(0, 7);
             }
@@ -90,7 +90,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void Float(InputAction.CallbackContext context)
     {
-        if(context.performed  && !groundJump)
+        if(context.performed  && !groundScript.groundCheck)
         {
             floatStart = true;
         }
@@ -106,22 +106,7 @@ public class PlayerMovement : MonoBehaviour
         deathCount++;
     }
 
-    public void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            groundJump = true;
-        }
-        
-    }
-
-    public void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            groundJump = false;
-        }
-    }
+    
     
     //Water refill from pool
     void OnTriggerEnter2D(Collider2D other)
