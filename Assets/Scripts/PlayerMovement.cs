@@ -9,13 +9,15 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     [SerializeField] private float speedMultiplier;
     Rigidbody2D rb;
+    public Vector2 currentRespawn;
+    [SerializeField] int deathCount;
     
-    [SerializeField] private bool groundJump;
-    [SerializeField] int waterMeter;
-    [SerializeField] private int waterMax = 100;
-    [SerializeField] private int jumpCost = 20;
+    [SerializeField] bool groundJump;
+    [SerializeField] public int waterMeter;
+    [SerializeField] int waterMax = 100;
+    [SerializeField] int jumpCost = 20;
    
-    private bool overWater;
+    bool overWater;
     float poolTimer;
 
     bool floatStart;
@@ -26,17 +28,27 @@ public class PlayerMovement : MonoBehaviour
         waterMeter = waterMax;
         poolTimer = 1f;
         floatTimer = 0.5f;
+        currentRespawn = Vector2.zero;
     }
     public void Update()
     {
-       
-        rb.velocity = new Vector2(moveInput.x * speedMultiplier, rb.velocity.y);
-        if (Input.GetKeyDown("space") && waterMeter > 20 && !floatStart)
+       if(waterMeter == 0)
         {
-            rb.velocity = new Vector2(0, 7);
-            if (!groundJump)
+            Respawn();
+        }
+
+        rb.velocity = new Vector2(moveInput.x * speedMultiplier, rb.velocity.y);
+        if (Input.GetKeyDown("space") && !floatStart)
+        {
+            
+            if (!groundJump && waterMeter > 20)
             {
+                rb.velocity = new Vector2(0, 7);
                 waterMeter -= jumpCost;
+            }
+            else if (groundJump)
+            {
+                rb.velocity = new Vector2(0, 7);
             }
         }
 
@@ -53,6 +65,10 @@ public class PlayerMovement : MonoBehaviour
         if(waterMeter > waterMax)
         {
             waterMeter = waterMax;
+        }
+        else if(waterMeter < 0)
+        {
+            waterMeter = 0;
         }
 
         if (floatStart && waterMeter > 5)
@@ -83,6 +99,12 @@ public class PlayerMovement : MonoBehaviour
             floatStart = false;
         }
     }
+    public void Respawn()
+    {
+        transform.position = Vector3.zero;
+        waterMeter = waterMax;
+        deathCount++;
+    }
 
     public void OnCollisionEnter2D(Collision2D collision)
     {
@@ -100,6 +122,8 @@ public class PlayerMovement : MonoBehaviour
             groundJump = false;
         }
     }
+    
+    //Water refill from pool
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.tag == "waterPool" && waterMeter < waterMax)
@@ -115,4 +139,6 @@ public class PlayerMovement : MonoBehaviour
             overWater = false;
         }
     }
+
+
 }
