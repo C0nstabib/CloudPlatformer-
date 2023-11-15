@@ -11,7 +11,7 @@ public class SpikeHurt : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") && !collision.gameObject.layer.Equals("Attack"))
         {
             playerScript.waterMeter = playerScript.waterMeter-35;
             if (playerScript.waterMeter >= 0)

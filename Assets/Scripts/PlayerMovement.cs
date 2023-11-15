@@ -11,14 +11,17 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody2D rb;
     public Vector2 currentRespawn;
     [SerializeField] int deathCount;
+    [SerializeField] int BreezeBadges;
     public Groundcheck groundScript;
-    GameObject airPuffAttack;
+    [SerializeField] GameObject airPuffAttack;
+    [SerializeField] GameObject thunderChargeRing;
+    [SerializeField] GameObject thunderAttack;
 
     [SerializeField] Sprite standSprite;
     [SerializeField] Sprite crouchSprite;
 
     [SerializeField] public int waterMeter;
-    [SerializeField] int waterMax = 100;
+    [SerializeField] public int waterMax = 100;
     [SerializeField] int jumpCost = 20;
 
     bool overWater;
@@ -28,8 +31,12 @@ public class PlayerMovement : MonoBehaviour
     float floatTimer;
 
     bool crouching;
-    bool attackStart;
-    [SerializeField] bool test;
+    bool airAttackStart;
+    bool thunderAttackStart;
+    [SerializeField] bool thunderCharged;
+    bool charging;
+    double attackStartTime;
+    double attackHoldTime;
     public void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -37,9 +44,11 @@ public class PlayerMovement : MonoBehaviour
         poolTimer = 1f;
         floatTimer = 0.5f;
         currentRespawn = Vector2.zero;
+        BreezeBadges = 0;
         crouching = false;
-        airPuffAttack = GameObject.Find("AirPuffHitbox");
         airPuffAttack.SetActive(false);
+        thunderChargeRing.SetActive(false);
+        thunderAttack.SetActive(false);
     }
     public void Update()
     {
@@ -73,6 +82,18 @@ public class PlayerMovement : MonoBehaviour
                 floatTimer = 0.5f;
             }
         }
+        if (floatStart && groundScript.groundCheck)
+        {
+            floatStart = false;
+        }
+        if (thunderCharged)
+        {
+            thunderChargeRing.SetActive(true);
+        }
+        else
+        {
+            thunderChargeRing.SetActive(false);
+        }
     }
     public void Move(InputAction.CallbackContext context)
     {
@@ -93,29 +114,93 @@ public class PlayerMovement : MonoBehaviour
                 rb.velocity = new Vector2(0, 7);
             }
         }
-    }
+        else if (Input.GetKeyDown("space") && floatStart)
+        {
+            floatStart = false;
+            gameObject.GetComponent<BoxCollider2D>().offset = new Vector2(0, 0);
+            gameObject.GetComponent<BoxCollider2D>().size = new Vector2(1, 1);
+            gameObject.GetComponent<SpriteRenderer>().sprite = standSprite;
+            if (!groundScript.groundCheck && waterMeter > 20)
+            {
+                rb.velocity = new Vector2(0, 7);
+                waterMeter -= jumpCost;
+            }
+            else if (groundScript.groundCheck)
+            {
+                rb.velocity = new Vector2(0, 7);
+            }
+        }
 
+    }
     public void Attack(InputAction.CallbackContext context)
     {
-        if (context.canceled && !crouching && waterMeter > 25 && !attackStart)
+       
+        
+        if (context.started && !crouching && waterMeter > 30 && !airAttackStart && !thunderAttackStart)
         {
-            waterMeter -= 25;
+            
+            StartCoroutine(thunderCharging());
+           
+        }
+        else if (context.canceled && !crouching && waterMeter > 30 && !airAttackStart && !thunderAttackStart && charging)
+        {
+            StopCoroutine(thunderCharging());
+            charging = false;
+        }
+        else if (context.canceled && !crouching && waterMeter > 30 && !airAttackStart && !thunderAttackStart && thunderCharged)
+        {
+            waterMeter -= 30;
+            thunderCharged = false;
+            StartCoroutine(thunderWait());
+        }
+        else if (context.canceled && waterMeter <= 30 && thunderCharged)
+        {
+            thunderCharged = false;
+        }
+
+        if (context.canceled && !crouching && waterMeter > 10 && !airAttackStart && !thunderAttackStart && !thunderCharged && !charging)
+        {
+            waterMeter -= 10;
             StartCoroutine(airPuffWait());
+        }
+        
+    }
+    IEnumerator thunderCharging()
+    {
+        charging = true;
+        yield return new WaitForSeconds(1.5f);
+        if (charging)
+        {
+            charging = false;
+            thunderCharged = true;
+        }
+        else
+        {
+            thunderCharged = false;
         }
     }
     IEnumerator airPuffWait()
     {
-        attackStart = true;
+        airAttackStart = true;
         airPuffAttack.SetActive(true);
         yield return new WaitForSeconds(0.3f);
         airPuffAttack.SetActive(false);
-        attackStart = false;
+        airAttackStart = false;
+    }
+    IEnumerator thunderWait()
+    {
+        thunderAttackStart = true;
+        thunderAttack.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        thunderAttack.SetActive(false);
+        thunderAttackStart = false;
     }
 
     public void FloatInput(InputAction.CallbackContext context)
     {
-        if(context.performed  && !groundScript.groundCheck)
+        if(context.performed  && !groundScript.groundCheck && waterMeter > 5)
         {
+            waterMeter -= 5;
             floatStart = true;
             gameObject.GetComponent<BoxCollider2D>().offset = new Vector2(0, -0.25f);
             gameObject.GetComponent<BoxCollider2D>().size = new Vector2(1, 0.5f);
@@ -149,7 +234,7 @@ public class PlayerMovement : MonoBehaviour
     }
     public void RefillWaterPool()
     {
-        if (overWater && waterMeter < waterMax)
+        if (overWater && waterMeter < waterMax )
         {
             poolTimer -= 1 * Time.deltaTime * 4;
             if (poolTimer <= 0)
@@ -172,7 +257,7 @@ public class PlayerMovement : MonoBehaviour
     }
     public void Respawn()
     {
-        transform.position = Vector3.zero;
+        transform.position = currentRespawn;
         waterMeter = waterMax;
         deathCount++;
     }
@@ -180,17 +265,39 @@ public class PlayerMovement : MonoBehaviour
     
     
     //Water refill from pool
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerStay2D(Collider2D other)
     {
         if (other.gameObject.tag == "waterPool" && waterMeter < waterMax)
         {
-            waterMeter += 10;
-            overWater = true;
+            if (!overWater)
+            {
+                waterMeter += 10;
+                overWater = true;
+            }
+        }
+        else if (other.gameObject.tag == "sparklePool" && waterMeter < waterMax)
+        {
+            if (!overWater)
+            {
+                waterMeter += 10;
+                overWater = true;
+                currentRespawn = new Vector2(other.transform.position.x, other.transform.position.y + 1);
+            }
+        }
+        else if (other.gameObject.tag == "sparklePool")
+        {
+            currentRespawn = new Vector2(other.transform.position.x, other.transform.position.y + 1);
+        }
+
+        if (other.gameObject.tag == "GBreeze")
+        {
+            BreezeBadges += 1;
+            other.gameObject.SetActive(false);
         }
     }
     void OnTriggerExit2D(Collider2D other1)
     {
-        if (other1.gameObject.tag == "waterPool")
+        if (other1.gameObject.tag == "waterPool" || other1.gameObject.tag == "sparklePool" )
         {
             overWater = false;
         }
