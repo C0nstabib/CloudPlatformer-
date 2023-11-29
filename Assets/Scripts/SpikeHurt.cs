@@ -13,11 +13,26 @@ public class SpikeHurt : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player") && !collision.gameObject.layer.Equals("Attack"))
         {
-            playerScript.waterMeter = playerScript.waterMeter-35;
-            if (playerScript.waterMeter >= 0)
+            playerScript.KBCounter = playerScript.KBTotalTime;
+            if (collision.transform.position.x <= transform.position.x)
             {
-                playerObj.transform.position = resetPoint;
+                playerScript.KnockFromRight = true;
             }
+            else
+            {
+                playerScript.KnockFromRight = false;
+            }
+            
+            playerScript.waterMeter = playerScript.waterMeter-35;
+            StartCoroutine(SpikeStun());
+        }
+    }
+    IEnumerator SpikeStun()
+    {
+        yield return new WaitForSeconds(0.1f);
+        if(playerScript.waterMeter >= 0)
+        {
+            playerObj.transform.position = resetPoint;
         }
     }
     

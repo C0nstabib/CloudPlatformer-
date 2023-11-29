@@ -7,8 +7,14 @@ TagManager:
   - Ground
   - waterPool
   - sparklePool
-  - AirPuff
   - GBreeze
+  - waterJug
+  - Enemy
+  - Terrain
+  - AirPuff
+  - ThunderAttack
+  - Undefined
+  - WaterAttack
   layers:
   - Default
   - TransparentFX
