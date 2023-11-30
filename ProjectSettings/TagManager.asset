@@ -24,7 +24,7 @@ TagManager:
   - UI
   - Attack
   - 
-  - 
+  - p
   - 
   - 
   - 
@@ -64,11 +64,11 @@ TagManager:
   - name: Player
     uniqueID: 1895963463
     locked: 0
-  - name: Attacks
-    uniqueID: 1256734155
-    locked: 0
   - name: Enemies
     uniqueID: 2798188665
+    locked: 0
+  - name: Attacks
+    uniqueID: 1256734155
     locked: 0
   - name: HiddenRooms
     uniqueID: 1880089901

@@ -19,6 +19,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] GameObject thunderChargeRing;
     [SerializeField] GameObject thunderAttack;
     [SerializeField] GameObject waterJugRespawn;
+    [SerializeField] GameObject enemyRespawn;
     
     [SerializeField] Transform waterAttackPoint;
     [SerializeField] GameObject projectilePrefab;
@@ -71,6 +72,10 @@ public class PlayerMovement : MonoBehaviour
        if(waterMeter == 0)
         {
             Respawn();
+            for (int i = 0; i < enemyRespawn.transform.childCount; ++i)
+            {
+                enemyRespawn.transform.GetChild(i).gameObject.SetActive(true);
+            }
         }
         if(KBCounter <= 0)
         {
@@ -184,14 +189,14 @@ public class PlayerMovement : MonoBehaviour
             StartCoroutine(thunderCharging());
            
         }
-        else if (context.canceled && !crouching && waterMeter > 30 && !airAttackStart && !thunderAttackStart && charging && !waterAttackStart)
+        else if (context.canceled && !crouching && waterMeter > 30  && charging && !waterAttackStart)
         {
             StopCoroutine(thunderCharging());
             charging = false;
         }
         else if (context.canceled && !crouching && waterMeter > 30 && !airAttackStart && !thunderAttackStart && thunderCharged && !waterAttackStart)
         {
-            waterMeter -= 30;
+            waterMeter -= 20;
             thunderCharged = false;
             StartCoroutine(thunderWait());
         }
@@ -317,6 +322,7 @@ public class PlayerMovement : MonoBehaviour
         transform.position = currentRespawn;
         waterMeter = waterMax;
         deathCount++;
+        
     }
 
     

@@ -5,12 +5,14 @@ using UnityEngine;
 public class EnemyProperties : MonoBehaviour
 {
     public PlayerMovement playerScript;
+    [SerializeField] SpriteRenderer spriteRenderer;
     [SerializeField] int maxHealth = 20;
     public int enemyHealth;
 
     private void Start()
     {
         enemyHealth = maxHealth;
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -31,21 +33,37 @@ public class EnemyProperties : MonoBehaviour
         if (collision.gameObject.CompareTag("AirPuff"))
         {
             enemyHealth -= 15;
+            StartCoroutine(DamageColour());
         }
         else if (collision.gameObject.CompareTag("ThunderAttack"))
         {
             enemyHealth -= 30;
+            StartCoroutine(DamageColour());
         }
         else if (collision.gameObject.CompareTag("WaterAttack"))
         {
             enemyHealth -= 5;
+            StartCoroutine(DamageColour());
         }
     }
     private void Update()
     {
         if(enemyHealth <= 0)
         {
-            gameObject.SetActive(false);
+            StartCoroutine(DeathColour());
         }
+    }
+    IEnumerator DamageColour()
+    {
+        spriteRenderer.color = new Color(0.9150943f, 0.4359647f, 0.4359647f);
+        yield return new WaitForSeconds(0.3f);
+        spriteRenderer.color = new Color(1,1,1);
+    }
+    IEnumerator DeathColour()
+    {
+        spriteRenderer.color = new Color(0.9150943f, 0.4359647f, 0.4359647f);
+        yield return new WaitForSeconds(0.2f);
+        spriteRenderer.color = new Color(1, 1, 1);
+        gameObject.SetActive(false);
     }
 }
