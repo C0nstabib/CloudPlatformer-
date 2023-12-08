@@ -20,6 +20,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] GameObject thunderAttack;
     [SerializeField] GameObject waterJugRespawn;
     [SerializeField] GameObject enemyRespawn;
+    [SerializeField] EnemyProperties enemyProperties;
     
     [SerializeField] Transform waterAttackPoint;
     [SerializeField] GameObject projectilePrefab;
@@ -74,6 +75,7 @@ public class PlayerMovement : MonoBehaviour
             Respawn();
             for (int i = 0; i < enemyRespawn.transform.childCount; ++i)
             {
+                enemyRespawn.transform.GetChild(i).GetComponent<EnemyProperties>().enemyHealth = enemyRespawn.transform.GetChild(i).GetComponent<EnemyProperties>().maxHealth;
                 enemyRespawn.transform.GetChild(i).gameObject.SetActive(true);
             }
         }
@@ -330,7 +332,7 @@ public class PlayerMovement : MonoBehaviour
     //Water refill from pool
     void OnTriggerStay2D(Collider2D other)
     {
-        if (other.gameObject.tag == "waterPool" && waterMeter < waterMax)
+        if (other.gameObject.tag == "waterPool" && waterMeter < waterMax && !(gameObject.tag == "AirPuff" || gameObject.tag == "ThunderAttack" || gameObject.tag == "WaterAttack"))
         {
             if (!overWater)
             {

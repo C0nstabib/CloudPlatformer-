@@ -6,7 +6,7 @@ public class EnemyProperties : MonoBehaviour
 {
     public PlayerMovement playerScript;
     [SerializeField] SpriteRenderer spriteRenderer;
-    [SerializeField] int maxHealth = 20;
+    [SerializeField] public int maxHealth = 20;
     public int enemyHealth;
 
     private void Start()
