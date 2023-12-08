@@ -296,6 +296,14 @@ public class PlayerMovement : MonoBehaviour
         
 
     }
+
+    public void CloseGame(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            Application.Quit();
+        }
+    }
     public void RefillWaterPool()
     {
         if (overWater && waterMeter < waterMax )
